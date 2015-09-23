@@ -41,11 +41,10 @@ function encode_cjk_url($raw_url) {
 
 function get_page($url) {
 
-    $url_hash = date('Y-m-d') . md5($url);
+    $url_hash = date('Y-m-d_') . md5($url);
     $kvdb     = new SaeKV();
     $kvdb->init();
-
-    $page_str = '';
+    $page_str = false;
     if ($str = $kvdb->get($url_hash)) {
         $page_str = $str;
     } else {
@@ -58,7 +57,6 @@ function get_page($url) {
         } else {
             $kvdb->set($url_hash, $page_str);
         }
-
     }
 
     return $page_str;
@@ -75,11 +73,9 @@ function parse_img_urls($html) {
         //find for the largest img
         $temp_container = array();
         for ($i = 0, $length = sizeof($urls); $i < $length; $i++) {
-
             $url  = $urls[$i];
             $hash = $hashes[$i];
             $size = $sizes[$i];
-
             if (empty($temp_container[$hash]) || $temp_container[$hash]['size'] < $size) {
                 $temp_container[$hash] = array('url' => $url, 'size' => $size);
             }
@@ -88,18 +84,15 @@ function parse_img_urls($html) {
         $kvdb = new SaeKV();
         $kvdb->init();
         foreach ($temp_container as $hash => $item) {
-
-            $img_filename = basename($item['url']);
+            $filename = basename($item['url']);
             $local_file   = 'none';
-            if ($img_info = $kvdb->get($img_filename)) {
+            if ($img_info = $kvdb->get($filename)) {
                 if (in_array($img_info['remark'], array('unwanted', 'inaccessible'))) {
                     continue;
                 }
-                $item['size'] <= $img_info['size'] && $local_file = $img_filename;
+                $item['size'] <= $img_info['size'] && $local_file = $filename;
             }
-
             $hash_size_mark = "{$hash}#{$item['size']}#$local_file";
-
             $return_urls[$hash_size_mark] = $item['url'];
         }
     }
@@ -150,7 +143,6 @@ function fetch_and_store_images(array $img_urls) {
     foreach ($img_urls as $hash_size_name => $img_url) {
         list($hash, $size, $filename) = explode('#', $hash_size_name);
 
-
         if ($filename !== 'none' && file_exists("saestor://tumblrlikes/$filename")) {
 
             $img = file_get_contents("saestor://tumblrlikes/$filename");
@@ -162,7 +154,6 @@ function fetch_and_store_images(array $img_urls) {
             $fetch_succeed = in_array(parse_header($http_response_header, 'status'), $valid_status);
 
             $img_info = array('date' => date('Y-m-d'), 'size' => $size, 'read_counter' => 1, 'remark' => $fetch_succeed ? '' : 'inaccessible');
-
             $kvdb->set($filename, $img_info);
 
             if ($img === false || !$fetch_succeed) {
