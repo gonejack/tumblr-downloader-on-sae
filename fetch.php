@@ -49,10 +49,7 @@ function get_page($url) {
     if ($str = $kvdb->get($url_hash)) {
         $page_str = $str;
     } else {
-
         $page_str = file_get_contents($url);
-
-
         //Tumblr has two URL types, try the short one when the long one failed.
         strlen($page_str) < 100 && preg_match('<http.+/post/\d+>', $url, $arrMatch) && $page_str = @file_get_contents($arrMatch[0]);
 
@@ -95,7 +92,6 @@ function parse_img_urls($html) {
             $img_filename = basename($item['url']);
             $local_file   = 'none';
             if ($img_info = $kvdb->get($img_filename)) {
-
                 if (in_array($img_info['remark'], array('unwanted', 'inaccessible'))) {
                     continue;
                 }
@@ -160,7 +156,6 @@ function fetch_and_store_images(array $img_urls) {
             $img = file_get_contents("saestor://tumblrlikes/$filename");
 
         } else {
-
             $filename = basename($img_url);
 
             $img           = @file_get_contents($img_url);
