@@ -13,9 +13,9 @@ if (!isset($_GET['url']) || !preg_match('#^http.?://.+\.tumblr\.com.*#i', $_GET[
 }
 
 function main() {
-    $html = get_page(encode_cjk_url($_GET['url']));
+    $html     = get_page(encode_cjk_url($_GET['url']));
     $img_urls = parse_img_urls($html);
-    switch(count($img_urls)) {
+    switch (count($img_urls)) {
         case 0:
             exit_with_msg('Images not found');
             break;
@@ -33,7 +33,7 @@ function encode_cjk_url($raw_url) {
     $url = '';
     if (preg_match('#(http.+?tumblr\.com)(.+$)#i', $raw_url, $matches)) {
         $path_parts = array_map('urlencode', explode('/', $matches[2]));
-        $url = $matches[1] . implode('/', $path_parts);
+        $url        = $matches[1] . implode('/', $path_parts);
     }
 
     return $url;
@@ -41,8 +41,8 @@ function encode_cjk_url($raw_url) {
 
 function get_page($url) {
 
-    $url_hash = date('Y-m-d').md5($url);
-    $kvdb = new SaeKV();
+    $url_hash = date('Y-m-d') . md5($url);
+    $kvdb     = new SaeKV();
     $kvdb->init();
 
     $page_str = '';
@@ -93,7 +93,7 @@ function parse_img_urls($html) {
         foreach ($temp_container as $hash => $item) {
 
             $img_filename = basename($item['url']);
-            $local_file = 'none';
+            $local_file   = 'none';
             if ($img_info = $kvdb->get($img_filename)) {
 
                 if (in_array($img_info['remark'], array('unwanted', 'inaccessible'))) {
@@ -149,7 +149,7 @@ function fetch_and_store_images(array $img_urls) {
     $return_arr = array('valid_images' => array(), 'invalid_image_urls' => array());
 
     $valid_status = array(200, 301, 304);
-    $kvdb = new SaeKV();
+    $kvdb         = new SaeKV();
     $kvdb->init();
     foreach ($img_urls as $hash_size_name => $img_url) {
         list($hash, $size, $filename) = explode('#', $hash_size_name);
@@ -163,7 +163,7 @@ function fetch_and_store_images(array $img_urls) {
 
             $filename = basename($img_url);
 
-            $img = @file_get_contents($img_url);
+            $img           = @file_get_contents($img_url);
             $fetch_succeed = in_array(parse_header($http_response_header, 'status'), $valid_status);
 
             $img_info = array('date' => date('Y-m-d'), 'size' => $size, 'read_counter' => 1, 'remark' => $fetch_succeed ? '' : 'inaccessible');
