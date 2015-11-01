@@ -31,7 +31,6 @@ function get_redirect_target($url)
 }
 
 function get_page_src($url) {
-
     $ch = curl_init($url);
     $options = array(
         CURLOPT_RETURNTRANSFER => true,
