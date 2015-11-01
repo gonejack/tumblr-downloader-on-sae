@@ -115,24 +115,28 @@ function parse_video_url($page_src) {
 
 function main() {
     $txt = file_get_contents('tumblr_likes.txt');
+
     if (preg_match_all('#http://ift.tt/.*#', $txt, $matches)) {
+
         $unwanted = file_get_contents('unwanted_files.txt');
+
         foreach ($matches[0] as $ori_url) {
+
             try {
                 echo str_repeat('-', 30), "\n";
-                echo "start: $ori_url\n";
+                echo "Start: $ori_url\n";
 
                 $redirect_url = get_redirect_target($ori_url);
                 if (!$redirect_url) {
                     file_put_contents('invalid_urls.txt', "$ori_url\n", FILE_APPEND);
-                    throw new exception("Exception: invalid original URL $ori_url");
+                    throw new exception("invalid original URL $ori_url");
                 } else {
                     file_put_contents('real_post_urls.txt', "$redirect_url\n", FILE_APPEND);
                 }
                 echo "Location fetched: $redirect_url\n";
 
                 $page_src = get_page_src($redirect_url);
-                if (!$page_src) { throw new exception("false page_src"); }
+                if (!$page_src) { throw new exception("zero length page_src"); }
                 printf("Page fetched: length(%d)\n", strlen($page_src));
 
                 $resource_urls = array();
@@ -169,6 +173,7 @@ function main() {
 
         }
     }
+
 }
 
 main();
