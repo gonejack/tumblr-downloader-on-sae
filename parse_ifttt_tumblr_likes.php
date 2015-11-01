@@ -50,10 +50,9 @@ function get_page_src($url) {
 
     //Tumblr has two URL types, try the short one when the long one failed.
     if (strlen($page_str) < 100 && preg_match('<http.+/post/\d+>', $url, $match)) {
-        $page_str = false;
         $ch = curl_init($match[0]);
         curl_setopt_array($ch, $options);
-        for ($i = 0; !$page_str && $i < 2; $i++) { $page_str = curl_exec($ch); }
+        for ($i = 0, $page_str = false; !$page_str && $i < 2; $i++) { $page_str = curl_exec($ch); }
     }
 
     return $page_str;
