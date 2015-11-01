@@ -170,7 +170,7 @@ function fetch_and_store_images(array $img_urls) {
     return $return_arr;
 }
 
-function make_zip($imgs_and_urls) {
+function make_zip(&$imgs_and_urls) {
     require_once('zip.lib.php');
     $zip = new ZipFile();
 
@@ -187,7 +187,7 @@ function make_zip($imgs_and_urls) {
     return $zip->file();
 }
 
-function output_zip($zip_str) {
+function output_zip(&$zip_str) {
     header('Content-Type: application/zip');
     header('Content-Length: ' . strlen($zip_str));
     header('Content-Disposition: attachment; filename=' . date('Y/M/j/D G:i:s') . '.zip');
