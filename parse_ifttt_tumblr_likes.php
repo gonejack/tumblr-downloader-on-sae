@@ -1,4 +1,10 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Youi
+ * Date: 2015-11-1
+ * Time: 00:56
+ */
 
 function get_redirect_target($url)
 {
