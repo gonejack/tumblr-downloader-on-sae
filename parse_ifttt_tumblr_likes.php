@@ -45,15 +45,15 @@ function get_page_src($url) {
     );
     curl_setopt_array($ch, $options);
 
-    $page_str = false; $i = 0;
-    do { $page_str = curl_exec($ch); } while (!$page_str && $i++ < 2);
+    $page_str = false;
+    for ($i = 0; !$page_str && $i < 2; $i++) { $page_str = curl_exec($ch); }
 
     //Tumblr has two URL types, try the short one when the long one failed.
-    if (strlen($page_str) < 100 && preg_match('<http.+/post/\d+>', $url, $arrMatch)) {
-        $ch = curl_init($arrMatch[0]);
+    if (strlen($page_str) < 100 && preg_match('<http.+/post/\d+>', $url, $match)) {
+        $page_str = false;
+        $ch = curl_init($match[0]);
         curl_setopt_array($ch, $options);
-        $i = 0;
-        do { $page_str = curl_exec($ch); } while (!$page_str && $i++ < 2);
+        for ($i = 0; !$page_str && $i < 2; $i++) { $page_str = curl_exec($ch); }
     }
 
     return $page_str;
