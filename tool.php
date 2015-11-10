@@ -14,3 +14,13 @@ $diff = $date_one->diff($date_two);
 
 echo $diff->format('%y %m %d %a');
 */
+//$proc = proc_open("aria2c",
+//    array(
+//        array("pipe","r"),
+//        array("pipe","w"),
+//        array("pipe","w")
+//    ),
+//    $pipes);
+//print stream_get_contents($pipes[2]);
+
+var_dump(`aria2c 2>&1`);

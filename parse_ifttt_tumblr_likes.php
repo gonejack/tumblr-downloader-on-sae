@@ -6,6 +6,11 @@
  * Time: 00:56
  */
 
+/**
+ * Query out the redirect url of ifttt short url
+ * @param string $url the short url redirecting to tumblr real url
+ * @return bool|string false on failed or tumblr url string on success
+ */
 function get_redirect_target($url)
 {
     $ch = curl_init($url);
@@ -36,6 +41,11 @@ function get_redirect_target($url)
 
 }
 
+/**
+ * Get the html content of url
+ * @param string $url the url to be fetched
+ * @return bool|mixed false on failed or html content string on success
+ */
 function get_page_src($url) {
     $ch = curl_init($url);
     $options = array(
@@ -64,6 +74,11 @@ function get_page_src($url) {
     return $page_str;
 }
 
+/**
+ * Fetch out post type
+ * @param string $page_src the html content string
+ * @return string return string: tumblr post type like 'photo' 'photoset' 'audio' 'video' on success or 'unknow' on failed.
+ */
 function get_post_type($page_src) {
     $post_type = 'unknown';
     if (preg_match('#<meta property="og:type" content="tumblr-feed:(\w+)" />#i', $page_src, $match)) {
@@ -72,6 +87,11 @@ function get_post_type($page_src) {
     return $post_type;
 }
 
+/**
+ * Fetch out image uris
+ * @param string $page_src the html content string
+ * @return array return array: array of image uris, or empty array when nothing fetched
+ */
 function parse_img_urls($page_src) {
     $return_urls = array();
 
@@ -79,7 +99,7 @@ function parse_img_urls($page_src) {
     if (preg_match_all($re_patten, $page_src, $matches)) {
         list(, $urls, $hashes, $hashes2, $sizes) = $matches;
 
-        //find for the largest img
+        #find for the largest img
         $temp_container = array();
         for ($i = 0, $length = sizeof($urls); $i < $length; $i++) {
             $url  = $urls[$i];
@@ -96,6 +116,11 @@ function parse_img_urls($page_src) {
     return $return_urls;
 }
 
+/**
+ * Fetch out audio file uri
+ * @param string $page_src the html content string
+ * @return bool|string return false on failed or audio uri string on succeed
+ */
 function parse_audio_url($page_src) {
     $audio_url = false;
     if (preg_match('#source src=\\x22([^\\]+)\\#', $page_src, $match)) {
@@ -107,6 +132,11 @@ function parse_audio_url($page_src) {
     return $audio_url;
 }
 
+/**
+ * Fetch out video file uri
+ * @param string $page_src the html content string
+ * @return bool
+ */
 function parse_video_url($page_src) {
     $video_url = false;
     if (preg_match('#<iframe src=\'([^\']*)\'#', $page_src, $match)) {
@@ -118,32 +148,45 @@ function parse_video_url($page_src) {
     return $video_url;
 }
 
-function main() {
-    $txt = file_get_contents('tumblr_likes.txt');
+/**
+ * Read short urls text file tumblr_likes.txt
+ * deal with every short url:
+ *     1 read the unwanted_files.txt for name of files that we don't need
+ *     2 fetch out long url of short url, if failed write the short url to invalid_urls.txt
+ *     3 fetch out resource uris inside html content of long url, filter this uris by the content of unwanted_files.txt
+ *     4 write out the resource uris to resource_urls.txt
+ * @param null $direct_url if specific deal with this single url instead of reading tumblr_likes.txt
+ */
+function main($direct_url = null) {
+    $txt = $direct_url ? $direct_url : file_get_contents('tumblr_likes.txt');
 
     if (preg_match_all('#http://ift.tt/.*#', $txt, $matches)) {
 
         $unwanted = file_get_contents('unwanted_files.txt');
 
+        #deal with each short url
         foreach ($matches[0] as $ori_url) {
 
             try {
                 echo str_repeat('-', 30), "\n";
                 echo "Start: $ori_url\n";
 
+                #get long url
                 $redirect_url = get_redirect_target($ori_url);
                 if (!$redirect_url) {
                     file_put_contents('invalid_urls.txt', "$ori_url\n", FILE_APPEND);
                     throw new exception("invalid original URL $ori_url");
                 } else {
-                    file_put_contents('real_post_urls.txt', "$redirect_url\n", FILE_APPEND);
+                    #file_put_contents('real_post_urls.txt', "$redirect_url\n", FILE_APPEND);
                 }
                 echo "Location fetched: $redirect_url\n";
 
+                #get html page content
                 $page_src = get_page_src($redirect_url);
                 if (!$page_src) { throw new exception("zero length page_src"); }
                 printf("Page fetched: length(%d)\n", strlen($page_src));
 
+                #fetch out resource urls
                 $resource_urls = array();
                 $post_type = get_post_type($page_src);
                 switch($post_type) {
@@ -186,6 +229,3 @@ main();
 //foreach (file('invalid_urls.txt') as $line) {
 //    echo get_redirect_target($line), "\n";
 //}
-
-//var_dump(parse_video_url(get_page_src('http://ophoooo.tumblr.com/post/131403147098')));
-//var_dump(parse_img_urls(get_page_src('http://ganpukudou.tumblr.com/post/131795600251/mifei-r-393-yui-aragaki-photos-girlspic')));
