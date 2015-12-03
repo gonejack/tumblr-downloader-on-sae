@@ -62,13 +62,24 @@ function get_page_src($url) {
     curl_setopt_array($ch, $options);
 
     $page_str = false;
-    for ($i = 0; !$page_str && $i < 2; $i++) { $page_str = curl_exec($ch); }
+
+    $i = 0;
+    do {
+        $page_str = curl_exec($ch);
+        $i++;
+    } while (!$page_str && $i < 3);
 
     //Tumblr has two URL types, try the short one when the long one failed.
     if (strlen($page_str) < 100 && preg_match('<http.+/post/\d+>', $url, $match)) {
         $ch = curl_init($match[0]);
         curl_setopt_array($ch, $options);
-        for ($i = 0, $page_str = false; !$page_str && $i < 2; $i++) { $page_str = curl_exec($ch); }
+
+        $i = 0;
+        do {
+            $page_str = curl_exec($ch);
+            $i++;
+        } while (!$page_str && $i <= 3);
+
     }
 
     return $page_str;
@@ -161,7 +172,6 @@ function main($direct_url = null) {
     $txt = $direct_url ? $direct_url : file_get_contents('tumblr_likes.txt');
 
     if (preg_match_all('#http://ift.tt/.*#', $txt, $matches)) {
-
         $unwanted = file_get_contents('unwanted_files.txt');
 
         #deal with each short url
@@ -220,12 +230,9 @@ function main($direct_url = null) {
             }
 
         }
+
     }
 
 }
 
 main();
-
-//foreach (file('invalid_urls.txt') as $line) {
-//    echo get_redirect_target($line), "\n";
-//}
